@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RUAS Skill Gap & Training Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+  <script src="jszip.min.js"></script>
+  <script src="pdf.min.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-in">
+      <div class="brand">
+        <img id="logoImg" alt="RUAS logo" hidden />
+        <div id="logoBadge" class="badge-logo">RUAS</div>
+        <div>
+          <div class="uni" id="uniName"></div>
+          <div class="dept" id="deptName"></div>
+        </div>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button class="tab on" data-tab="analysis">Skill Gap Analysis</button>
+        <button class="tab" data-tab="cv">CV Template</button>
+        <button class="tab" data-tab="outlook">Outlook 2026–27</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <h1 id="pageTitle"></h1>
+      <p>Compare student CVs with a job description, find skill gaps and get training recommendations for each student and the whole batch.
+        <span class="privacy">🔒 Files are processed only in your browser — nothing is uploaded.</span></p>
+    </div>
+  </section>
+
+  <main class="wrap">
+    <!-- ============ ANALYSIS TAB ============ -->
+    <div id="tab-analysis" class="tabpane">
+      <section class="card inputs">
+        <div class="col">
+          <h2><span class="num">1</span> Job description</h2>
+          <label class="drop" id="jdDrop">
+            <input id="jdFile" type="file" accept=".pdf,.docx,.txt,.png,.jpg,.jpeg" hidden />
+            <b>Upload JD</b> <span>PDF · DOCX · TXT · image</span>
+          </label>
+          <div id="jdName" class="filechip" hidden></div>
+          <details>
+            <summary>…or paste the JD text</summary>
+            <textarea id="jdText" rows="6" placeholder="Paste the job description here"></textarea>
+          </details>
+        </div>
+        <div class="col">
+          <h2><span class="num">2</span> Student CVs</h2>
+          <label class="drop" id="cvDrop">
+            <input id="cvFiles" type="file" multiple accept=".pdf,.docx,.txt,.png,.jpg,.jpeg" hidden />
+            <b>Upload CVs</b> <span>select many files at once</span>
+          </label>
+          <ul id="cvList" class="cvlist"></ul>
+        </div>
+        <div class="actions">
+          <button id="btnAnalyze" class="btn primary">Analyze</button>
+          <button id="btnExport" class="btn accent" disabled>Export Excel</button>
+          <button id="btnPrint" class="btn ghost" disabled>Print report</button>
+          <button id="btnClear" class="btn ghost">Clear</button>
+          <span id="status" class="status"></span>
+        </div>
+      </section>
+
+      <div id="results" hidden>
+        <section class="kpis" id="kpis"></section>
+
+        <section class="card">
+          <h2>JD intelligence</h2>
+          <div class="jdinfo" id="jdInfo"></div>
+          <h3>Required skills found in the JD</h3>
+          <div id="jdSkills" class="chips"></div>
+          <div id="jdOther" class="other"></div>
+        </section>
+
+        <div class="grid2">
+          <section class="card">
+            <h2>Match % by student</h2>
+            <div class="legend" id="readyLegend"></div>
+            <div id="chartMatch" class="chart"></div>
+          </section>
+          <section class="card">
+            <h2>Batch skill gap</h2>
+            <p class="sub">Share of students missing each required skill</p>
+            <div id="chartGap" class="chart"></div>
+          </section>
+        </div>
+
+        <section class="card">
+          <h2>Students</h2>
+          <p class="sub">Click a student for their personal training plan.</p>
+          <div class="tablewrap">
+            <table id="tblStudents">
+              <thead><tr>
+                <th data-sort="rank">#</th><th data-sort="name">Student (file)</th><th data-sort="score">Match %</th>
+                <th data-sort="band">Readiness</th><th>Matched skills</th><th>Missing skills</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>🎯 Batch training plan</h2>
+          <p class="sub">Training modules ordered by how many students need them.</p>
+          <div class="tablewrap">
+            <table id="tblTraining">
+              <thead><tr><th>Priority</th><th>Skill</th><th>Students missing</th><th>Recommended training</th><th>Hours</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="tracks" id="tracks"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ============ CV TEMPLATE TAB ============ -->
+    <div id="tab-cv" class="tabpane" hidden>
+      <section class="card">
+        <div class="cvhead">
+          <h2>B.Tech CV template (RUAS)</h2>
+          <button id="btnCvDownload" class="btn primary">Download as Word</button>
+        </div>
+        <div class="cvgrid">
+          <article class="cvsheet" id="cvSheet">
+            <h3 class="cvname">Your Name</h3>
+            <p class="cvcontact">Email · Mobile · LinkedIn · GitHub / Portfolio</p>
+            <h4>Career objective</h4>
+            <p>B.Tech student (2027) seeking a role in &lt;domain&gt; where I can apply &lt;2–3 key skills&gt; to solve real problems.</p>
+            <h4>Education</h4>
+            <p><b>B.Tech, &lt;Branch&gt;</b> — Ramaiah University of Applied Sciences, 2023–2027 · CGPA: x.x/10<br/>
+              Class XII — &lt;Board&gt;, &lt;Year&gt; · xx% &nbsp;|&nbsp; Class X — &lt;Board&gt;, &lt;Year&gt; · xx%</p>
+            <h4>Technical skills</h4>
+            <p><b>Languages:</b> Python, Java, SQL &nbsp;·&nbsp; <b>Tools:</b> Git, Power BI, MATLAB &nbsp;·&nbsp; <b>Domain:</b> Machine Learning, Statistics</p>
+            <h4>Projects</h4>
+            <ul>
+              <li><b>Project title</b> — what you built, tools used, and a measurable result (e.g. "reduced processing time by 30%").</li>
+              <li><b>Project title</b> — problem, your role, technologies, outcome. Add a GitHub link.</li>
+            </ul>
+            <h4>Internships / Experience</h4>
+            <ul><li><b>Company, Role</b> (Month–Month Year) — key responsibilities and results.</li></ul>
+            <h4>Certifications & achievements</h4>
+            <ul><li>Certification / hackathon / paper / award — with year.</li></ul>
+          </article>
+          <aside class="rules">
+            <h3>✅ Rules</h3>
+            <ul>
+              <li>One page only</li>
+              <li>No photo, no family details, no date of birth</li>
+              <li>Reverse chronological order</li>
+              <li>Start bullets with action verbs (Built, Designed, Analysed…)</li>
+              <li>Quantify results wherever possible</li>
+              <li>Mirror the skills named in the JD — this dashboard checks for them</li>
+              <li>Save as PDF named <code>Name_Branch_CV.pdf</code></li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============ OUTLOOK TAB ============ -->
+    <div id="tab-outlook" class="tabpane" hidden>
+      <section class="card">
+        <h2>Placement outlook 2026–27</h2>
+        <p class="sub">Demand index (0–100) by domain — indicative values from <code>config.js</code>.</p>
+        <div id="chartOutlook" class="chart"></div>
+        <p id="outlookNote" class="note"></p>
+        <h3>Domain guide</h3>
+        <div class="tablewrap">
+          <table id="tblDomains">
+            <thead><tr><th>Domain</th><th>Demand</th><th>Indicative salary</th><th>UG training</th><th>PG training</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot"><div class="wrap" id="footText"></div></footer>
+
+  <!-- student detail -->
+  <dialog id="dlgStudent">
+    <div class="dlg">
+      <div class="dlg-head">
+        <h3 id="stuName"></h3>
+        <button class="btn ghost small" id="btnCloseStu">Close</button>
+      </div>
+      <div id="stuBody"></div>
+      <div class="dlg-foot"><button class="btn primary small" id="btnPrintStu">Print this plan</button></div>
+    </div>
+  </dialog>
+
+  <div id="tip" class="tip" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
