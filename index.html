@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RUAS Skill Gap & Training Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2" />
   <script src="config.js"></script>
   <script src="jszip.min.js"></script>
   <script src="pdf.min.js"></script>
@@ -39,6 +39,24 @@
   <main class="wrap">
     <!-- ============ ANALYSIS TAB ============ -->
     <div id="tab-analysis" class="tabpane">
+      <!-- ============ DEMO SAMPLES ============ -->
+      <section class="card demo" id="sampleCard">
+        <h2><span class="demobadge">DEMO</span> Sample job descriptions &amp; CVs</h2>
+        <p class="sub">For demonstration only. View or download any file, or run a ready-made analysis with one click.</p>
+        <div class="sgroups">
+          <div><h3>Job descriptions (2)</h3><div id="sampleJDs" class="samples"></div></div>
+          <div><h3>Student CVs (3)</h3><div id="sampleCVs" class="samples"></div></div>
+        </div>
+        <div class="demoacts">
+          <button class="btn primary" data-run="0">▶ Run demo: Data Scientist JD + 3 CVs</button>
+          <button class="btn primary" data-run="1">▶ Run demo: Design Engineer JD + 3 CVs</button>
+          <button class="btn ghost" id="btnDlSamples">⬇ Download all 5 (.zip)</button>
+          <button class="btn danger" id="btnHideSamples">✕ Clear samples from this page</button>
+        </div>
+        <p id="sampleStatus" class="status"></p>
+      </section>
+      <p id="showSamplesWrap" class="restore" hidden>Sample files are hidden. <a href="#" id="btnShowSamples">Show demo samples again</a></p>
+
       <section class="card inputs">
         <div class="col">
           <h2><span class="num">1</span> Job description</h2>
@@ -197,7 +215,15 @@
     </div>
   </dialog>
 
+  <dialog id="dlgSample">
+    <div class="dlg">
+      <div class="dlg-head"><h3 id="smpTitle"></h3><button class="btn ghost small" id="btnCloseSmp">Close</button></div>
+      <div id="smpBody"></div>
+      <div class="dlg-foot" id="smpFoot"></div>
+    </div>
+  </dialog>
+
   <div id="tip" class="tip" hidden></div>
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

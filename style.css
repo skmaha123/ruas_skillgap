@@ -158,3 +158,19 @@ dialog::backdrop { background: rgba(30, 15, 55, .55); }
   body.print-student main { display: none; }
   body.print-student dialog { position: static; display: block; box-shadow: none; width: 100%; }
 }
+
+/* demo samples */
+.card.demo { border: 2px solid #f2c27a; background: #fffcf6; }
+.demobadge { background: var(--orange); color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: .6px; padding: 3px 8px; border-radius: 6px; }
+.sgroups { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.sgroups h3 { margin-top: 4px; }
+.samples { display: flex; flex-direction: column; gap: 8px; }
+.sample { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: #fff; border: 1px solid #f0dfc4; border-radius: 10px; padding: 8px 10px; }
+.sicon { font-size: 24px; }
+.sinfo { flex: 1 1 220px; display: flex; flex-direction: column; min-width: 0; } .sinfo small { color: var(--muted); font-size: .8rem; }
+.sbtns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+.demoacts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; border-top: 1px solid #f0dfc4; padding-top: 12px; }
+.btn.danger { background: var(--bad); color: #fff; border-color: var(--bad); }
+.restore { text-align: center; color: var(--muted); font-size: .9rem; margin: 8px 0; }
+.smptext { white-space: pre-wrap; font: .9rem/1.5 system-ui, Arial, sans-serif; background: #faf8fd; border: 1px solid var(--line); border-radius: 8px; padding: 12px; max-height: 60vh; overflow: auto; margin: 0; }
+@media (max-width: 800px) { .sgroups { grid-template-columns: 1fr; } }

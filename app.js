@@ -308,6 +308,13 @@ function setupDrop(dropId, inputId, onFiles) {
 }
 
 const okType = f => /\.(pdf|docx|txt|png|jpe?g)$/i.test(f.name);
+function setJd(f) { state.jdFile = f; $("jdName").hidden = false; $("jdName").textContent = "📄 " + f.name; }
+function addCvs(files) {
+  const add = files.filter(okType).filter(f => !state.cvFiles.some(x => x.name === f.name && x.size === f.size));
+  state.cvFiles.push(...add);
+  $("cvList").innerHTML = state.cvFiles.map(f => `<li>${esc(f.name)}</li>`).join("");
+  setStatus(`${state.cvFiles.length} CV(s) ready.`);
+}
 
 async function runAnalysis() {
   const pasted = $("jdText").value.trim();
@@ -365,16 +372,8 @@ function init() {
     document.querySelectorAll(".tabpane").forEach(p => (p.hidden = p.id !== "tab-" + t.dataset.tab));
   }));
 
-  setupDrop("jdDrop", "jdFile", files => {
-    const f = files.find(okType); if (!f) return;
-    state.jdFile = f; $("jdName").hidden = false; $("jdName").textContent = "📄 " + f.name;
-  });
-  setupDrop("cvDrop", "cvFiles", files => {
-    const add = files.filter(okType).filter(f => !state.cvFiles.some(x => x.name === f.name && x.size === f.size));
-    state.cvFiles.push(...add);
-    $("cvList").innerHTML = state.cvFiles.map(f => `<li>${esc(f.name)}</li>`).join("");
-    setStatus(`${state.cvFiles.length} CV(s) ready.`);
-  });
+  setupDrop("jdDrop", "jdFile", files => { const f = files.find(okType); if (f) setJd(f); });
+  setupDrop("cvDrop", "cvFiles", files => addCvs(files));
 
   $("btnAnalyze").addEventListener("click", runAnalysis);
   $("btnExport").addEventListener("click", exportExcel);
@@ -406,6 +405,78 @@ function init() {
   });
 
   renderOutlook();
+  initSamples();
 }
+
+/* ==================== DEMO SAMPLES ==================== */
+const SAMPLE_JDS = [
+  { file: "SAMPLE_JD_Data_Scientist.docx", title: "Data Scientist", note: "Python/R, ML, SQL, statistics, Power BI/Tableau, big data" },
+  { file: "SAMPLE_JD_Design_Engineer.docx", title: "Design Engineer (Graduate Trainee)", note: "CAD (AutoCAD/SolidWorks/CATIA), design, manufacturing, simulation" },
+];
+const SAMPLE_CVS = [
+  { file: "SAMPLE_CV_Aerospace_DataScience.docx", title: "Aerospace B.Tech — Data Science aspirant", note: "Python basics, data analysis, Excel, statistics" },
+  { file: "SAMPLE_CV_CSE_DataScience.docx", title: "CSE B.Tech — Data Science aspirant", note: "Advanced Python, ML, SQL, visualisation, Pandas" },
+  { file: "SAMPLE_CV_Mechanical_DataScience.docx", title: "Mechanical B.Tech — Data Science aspirant", note: "Python, SQL basics, Power BI, statistics" },
+];
+const SAMPLE_HIDE = "ruassg.hideSamples";
+const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} };
+async function sampleFile(s) {
+  const r = await fetch(s.file);
+  if (!r.ok) throw new Error(`${s.file} not found (HTTP ${r.status})`);
+  return new File([await r.blob()], s.file, { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+}
+function sampleErr(e) {
+  $("sampleStatus").className = "status err";
+  $("sampleStatus").textContent = location.protocol === "file:" ? "Samples load only when the page is opened from its website (GitHub Pages), not as a local file." : "Could not load the sample: " + e.message;
+}
+function sampleOk(msg) { $("sampleStatus").className = "status"; $("sampleStatus").textContent = msg; }
+function initSamples() {
+  const card = (s, kind, i) => `<div class="sample"><div class="sicon">${kind === "jd" ? "📋" : "👤"}</div><div class="sinfo"><b>${esc(s.title)}</b><small>${esc(s.note)}</small></div>
+    <div class="sbtns"><button class="btn ghost small" data-sview="${kind}${i}">👁 View</button><button class="btn accent small" data-sdl="${kind}${i}">⬇ Download</button>${kind === "jd" ? `<button class="btn ghost small" data-suse="${i}">Use as JD</button>` : `<button class="btn ghost small" data-sadd="${i}">Add to CVs</button>`}</div></div>`;
+  $("sampleJDs").innerHTML = SAMPLE_JDS.map((s, i) => card(s, "jd", i)).join("");
+  $("sampleCVs").innerHTML = SAMPLE_CVS.map((s, i) => card(s, "cv", i)).join("");
+  const pick = code => (code.startsWith("jd") ? SAMPLE_JDS : SAMPLE_CVS)[+code.slice(2)];
+  $("sampleCard").addEventListener("click", async e => {
+    const b = e.target.closest("button"); if (!b) return;
+    try {
+      if (b.dataset.sdl) { const s = pick(b.dataset.sdl); download(await sampleFile(s), s.file); sampleOk(`Downloaded ${s.file}`); }
+      else if (b.dataset.sview) {
+        const s = pick(b.dataset.sview), f = await sampleFile(s), text = await readFile(f);
+        $("smpTitle").textContent = `${s.title} (demo sample)`;
+        $("smpBody").innerHTML = `<pre class="smptext">${esc(text.replace(/\n{3,}/g, "\n\n").trim())}</pre>`;
+        $("smpFoot").innerHTML = `<button class="btn primary small" id="smpDl">⬇ Download .docx</button>`;
+        $("smpDl").onclick = () => download(f, s.file);
+        $("dlgSample").showModal();
+      }
+      else if (b.dataset.suse) { setJd(await sampleFile(SAMPLE_JDS[+b.dataset.suse])); sampleOk("JD set in step 1. Add CVs, then press Analyze."); }
+      else if (b.dataset.sadd) { addCvs([await sampleFile(SAMPLE_CVS[+b.dataset.sadd])]); sampleOk("CV added in step 2."); }
+      else if (b.dataset.run) {
+        sampleOk("Loading sample files…");
+        clearAll();
+        setJd(await sampleFile(SAMPLE_JDS[+b.dataset.run]));
+        const cvs = []; for (const s of SAMPLE_CVS) cvs.push(await sampleFile(s));
+        addCvs(cvs);
+        await runAnalysis();
+        sampleOk(`Demo analysis done: ${SAMPLE_JDS[+b.dataset.run].title} JD vs 3 sample CVs. Results are below.`);
+      }
+    } catch (err) { console.warn(err); sampleErr(err); }
+  });
+  $("btnDlSamples").addEventListener("click", async e => {
+    e.stopPropagation();
+    try { const z = new JSZip(); for (const s of [...SAMPLE_JDS, ...SAMPLE_CVS]) z.file(s.file, await sampleFile(s)); download(await z.generateAsync({ type: "blob" }), "RUAS_SkillGap_Samples.zip"); sampleOk("Downloaded all 5 sample files."); }
+    catch (err) { sampleErr(err); }
+  });
+  $("btnHideSamples").addEventListener("click", e => {
+    e.stopPropagation();
+    if (!confirm("Clear the demo samples from this page?\nAny sample JD/CVs loaded for analysis are removed too. You can show them again later.")) return;
+    if ((state.jdFile && /^SAMPLE_/.test(state.jdFile.name)) || state.cvFiles.some(f => /^SAMPLE_/.test(f.name))) clearAll();
+    showSamples(false);
+  });
+  $("btnShowSamples").addEventListener("click", e => { e.preventDefault(); showSamples(true); });
+  $("btnCloseSmp").addEventListener("click", () => $("dlgSample").close());
+  showSamples(lsGet(SAMPLE_HIDE) !== "1");
+}
+function showSamples(show) { $("sampleCard").hidden = !show; $("showSamplesWrap").hidden = show; lsSet(SAMPLE_HIDE, show ? null : "1"); }
 
 document.addEventListener("DOMContentLoaded", init);

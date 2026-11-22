@@ -33,3 +33,8 @@ A web dashboard for the Directorate of Training and Placement at Ramaiah Univers
 - Scanned PDFs have no readable text. Upload them as images instead, or use text-based PDFs.
 - Reading images (OCR) loads an extra library from the internet the first time it's used.
 - Matching is based on keywords from the skill library. Treat the scores as guidance for training decisions, not as a hiring verdict.
+
+## Demo samples
+Two sample job descriptions (Data Scientist, Design Engineer) and three sample B.Tech CVs (Aerospace, CSE, Mechanical) are included as `SAMPLE_*.docx`.
+On the page you can view or download each file, download all five (.zip), use a sample JD or add sample CVs, or run a one-click demo analysis.
+"Clear samples from this page" hides them in that browser ("Show demo samples again" restores them). To remove them from the website for everyone, delete the SAMPLE_*.docx files from the repository.
